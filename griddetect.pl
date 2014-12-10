@@ -76,9 +76,6 @@ corresponding to a count rate of 1 s**-1.
 
 Minimun and maximum values of the energy band, in eV.
 
-=item --sensmap
-
-Compute a sensitivity map.
 
 =back
 
@@ -99,8 +96,6 @@ the following columns:
 eexpmap)
 
 =item path of the background file
-
-=item XXX (is this really needed?) path of the relevant attitude file
 
 =back
 

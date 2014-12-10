@@ -71,9 +71,7 @@ For more information, please see the [griddetect manual](http://members.noa.gr/p
 
     Minimun and maximum values of the energy band, in eV.
 
-- \--sensmap
 
-    Compute a sensitivity map.
 
 # INPUT FILES
 
@@ -87,7 +85,6 @@ the following columns:
 - path of the unvignetted exposure map ("novign" option in
 eexpmap)
 - path of the background file
-- XXX (is this really needed?) path of the relevant attitude file
 
 The columns should be separated by spaces (or tabs) and value should
 be missing. Rows can contain comments if they start with a \#.
