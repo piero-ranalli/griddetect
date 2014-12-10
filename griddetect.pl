@@ -74,7 +74,7 @@ corresponding to a count rate of 1 s**-1.
 
 =item --pimin=500 --pimax=8000
 
-XXX (are they really needed?)
+Minimun and maximum values of the energy band, in eV.
 
 =item --sensmap
 
@@ -206,19 +206,20 @@ manual|http://members.noa.gr/piero.ranalli/griddetect>.
 
 =head1 AUTHOR
 
-(c) 2013 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2014 Piero Ranalli   piero.ranalli (at) noa.gr
 
 =head1 LICENSE
 
 Affero GPL v.3.0  (full details: http://www.gnu.org/licenses/agpl-3.0.html)
 
-This license applies to these file, and to all packages in the XMMSAS::
-and Atlas:: namespaces called by this program.
+This license applies to these file, to all files in the git
+repository, and to all packages in the XMMSAS:: and Detection::
+namespaces called by this program.
 
 =head1 HISTORY
 
  0.1  2013/5/      Development version used for XMM-ATLAS
- 1.0  2014/11/12   First public version
+ 1.0  2014/12/10   First public version
 
 =cut
 

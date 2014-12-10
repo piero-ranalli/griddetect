@@ -69,7 +69,7 @@ For more information, please see the [griddetect manual](http://members.noa.gr/p
 
 - \--pimin=500 --pimax=8000
 
-    XXX (are they really needed?)
+    Minimun and maximum values of the energy band, in eV.
 
 - \--sensmap
 
@@ -175,16 +175,17 @@ A detailed description of the above steps can be found in the [griddetect manual
 
 # AUTHOR
 
-(c) 2013 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2014 Piero Ranalli   piero.ranalli (at) noa.gr
 
 # LICENSE
 
 Affero GPL v.3.0  (full details: http://www.gnu.org/licenses/agpl-3.0.html)
 
-This license applies to these file, and to all packages in the XMMSAS::
-and Atlas:: namespaces called by this program.
+This license applies to these file, to all files in the git
+repository, and to all packages in the XMMSAS:: and Detection::
+namespaces called by this program.
 
 # HISTORY
 
     0.1  2013/5/      Development version used for XMM-ATLAS
-    1.0  2014/11/12   First public version
+    1.0  2014/12/10   First public version
