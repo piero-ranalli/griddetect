@@ -1,4 +1,4 @@
-package Atlas::Grid::GlobFiles;
+package Detection::Grid::GlobFiles;
 
 use Moose::Role qw/has/;
 use PDL;

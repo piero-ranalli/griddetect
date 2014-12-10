@@ -6,11 +6,15 @@ griddetect.pl - grid-based detection with emldetect
 
 =head1 SYNOPSYS
 
-This program should be called twice. The first time, to create the bkg files:
+This program should be called thrice. The first time, to ingest the
+list of images and exposure maps, and the grid definition:
+ ./griddetect --ingest --imglist=mylist.txt --grid=mygrid.txt --srclist=mysrclist.fits --ccf=ccf.cif --odf=xxxxSUM.SAS
+
+The second time to create the bkg files:
  ./griddetect --bkg
 
-The second time to run the detection:
- ./griddetect
+The third time to actually run the detection:
+ ./griddetect --eband="05-8" --ecf=8.61e-12 --pimin=500 pimax=8000
 
 =head1 DESCRIPTION
 
@@ -30,34 +34,160 @@ manual|http://members.noa.gr/piero.ranalli/griddetect> and the article
 "The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2014
 (submitted to A&A).
 
-=head1 WORKFLOW
-
-The typical workflow for a wide survey should be as follows:
+=head1 PARAMETERS
 
 =over 4
 
-=item # correct the relative astrometry between different obsids;
+=item --ingest
 
-=item # obtain an input catalogue (e.g., by running ewavelet on the
+Read the list of images and exposure maps, and the grid
+definition. This information is processed and stored and will be used
+in the following runs.
+
+=item --imglist=mylist.txt
+
+Specify the image/expmap list filename.
+
+=item --grid=myrgid.txt
+
+Specify the grid definition filename.
+
+=item --srclist=mysrclist.fits
+
+Specify the input catalogue, to be used for both the background fit
+and the emldetect runs.
+
+=item --bkg
+
+Fit a background model to the images and exposure maps, according to
+the method developed for XMM-COSMOS (Cappelluti et al. 2009).
+
+=item --eband="05-8"
+
+A string describing the energy band, to be used as part of the name of
+file produced in the detection.
+
+=item --ecf=8.6e-12
+
+The energy conversion factor (ecf), defined as the flux (in erg/s/cm2)
+corresponding to a count rate of 1 s**-1.
+
+=item --pimin=500 --pimax=8000
+
+XXX (are they really needed?)
+
+=item --sensmap
+
+Compute a sensitivity map.
+
+=back
+
+=head1 INPUT FILES
+
+=head2 List of images and exposure maps
+
+This should be a text file containing, in one row for each pointing,
+the following columns:
+
+=over 4
+
+=item path of the image file
+
+=item path of the exposure map
+
+=item path of the unvignetted exposure map ("novign" option in
+eexpmap)
+
+=item path of the background file
+
+=item XXX (is this really needed?) path of the relevant attitude file
+
+=back
+
+The columns should be separated by spaces (or tabs) and value should
+be missing. Rows can contain comments if they start with a #.
+
+All files are checked for their existence. Images, expmaps and
+unvignetted expmaps have to exist in order to succesfully ingest the
+list.  Background files are checked but it is allowed that they do not
+exist, because usually they will be created in the second stage with
+the --bkg option.
+
+=head2 Grid definition
+
+This should be a text file containing a series of key/value pairs, as
+in the following example, which defines a 3x5 grid with cracks
+rotated by 35 degrees with respect to the RA,Dec framework:
+
+ rotation=35   #  grid rotation in degrees (positive: clockwise)
+ ra_centre=53.12345    #  RA of rotation centre
+ dec_centre=24.6543    #  Dec of rotation centre
+ x=52.8        # grid boundary (along the rotated RA axis)
+ x=53.07       # a crack
+ x=53.17       # another crack
+ x=53.5        # grid boundary
+ y=24.2        # grid boundary (along the rotated Dec axis)
+ y=24.5        # crack
+ y=24.6        # crack
+ y=24.7        # crack
+ y=25          # grid boundary
+
+If only one row (or column) is desired in the grid, then only the
+boundaries should be specified.
+
+The conversion between equatorial coordinates (ra,dec) and the rotated
+(x,y) used here is:
+
+ x = (ra-ra_centre)*cos(rotation) - (dec-dec_centre)*sin(rotation)
+ y = (ra-ra_centre)*sin(rotation) + (dec-dec_centre)*cos(rotation)
+
+Rotation, ra_centre and dec_centre are optional: in their absence, the
+(x,y) coordinates will be interpreted as (ra,dec).
+
+Any number (including zero) of "x" and "y" lines can be specified in
+the file; however, at least one x or one y should be present.
+
+A sample grid is present in the distribution in the file
+sample_grid.txt.
+
+
+=head1 WORKFLOW
+
+A typical workflow for a wide survey could be as follows (the first 8
+steps are meant to prepare the input for griddetect):
+
+=over 4
+
+=item 1. correct the relative astrometry between different obsids;
+
+=item 2. obtain an input catalogue (e.g., by running ewavelet on the
 mosaic image);
 
-=item # run emosaic_prep on astrometry-corrected event files to split
+=item 3. run emosaic_prep on astrometry-corrected event files to split
 each obsid into individual pointings;
 
-=item # run mosaicfix.pl to put the coordinates in the individual pointings;
+=item 4. run mosaicfix.pl to put the coordinates in the individual pointings;
 
-=item # create reprojected event files, images and expmaps (e.g.,
+=item 5. create reprojected event files, images and expmaps (e.g.,
 using evtlist2makefile.pl and img-extractor-expmap.pl);
 
-=item # fix again pointing info (mosaicrefix.pl);
+=item 6. fix again pointing info (mosaicrefix.pl);
 
-=item # sum the images and expmaps over camera  (addcameras.pl);
+=item 7. sum the images and expmaps over camera  (addcameras.pl);
 
-=item # make the backgrounds:  griddetect.pl --bkg ;
+=item 8. prepare the list of images/expmaps and the grid definition
+(see below);
 
-=item # do the detection:  griddetect.pl ;
+=item 9. ingest the list and the grid definition:
+ griddetect --ingest --list=mylist.txt --grid=mygrid.txt
 
-=item # check for sources close to the cracks;
+=item 10. make the backgrounds:
+ griddetect.pl --bkg
+
+=item 11. do the detection:
+ griddetect.pl
+
+=item 12. check for sources close to the cracks;
 
 =item # join the individual catalogues.
 
@@ -93,21 +223,31 @@ and Atlas:: namespaces called by this program.
 =cut
 
 
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
 use XMMSAS::Detect;
 use Modern::Perl;
 use Getopt::Long;
-use Parallel::ForkManager;
+#use Parallel::ForkManager;
 #use List::MoreUtils 'apply';
 
-use AtlasFiles;
-use Atlas::Grid;
+#use AtlasFiles;
+use Detection::Grid;
 
+# defaults
+my $srclist = 'srclist.fits';
+my $imglist = 'image.list';
+my $griddef = 'griddef.txt';
+my $ccf = 'ccf.cif';
+my $odf = 'SUM.SAS';
 
 my $dobkg = 0;
+my $doingest = 0;
 my $doonlybkgsum = 0;
 my $dosensmap = 0;
 my $maxproc = 0;
-my $srclist = '/home/pranalli/Data/Atlas/Det-emldetect/atlas-wavcat-extract-v2.fits';
+
 my $eband = '05-8';
 	# ecf: gamma=1.7 nh=2.3e20
 	# .5-8 =>      9.197e-12
@@ -119,36 +259,62 @@ my $ecf = 1/.8609;
 my $pimin = 2000;
 my $pimax = 8000;
 
-GetOptions( 'bkg'     => \$dobkg,
+
+GetOptions( 'bkg'        => \$dobkg,
+	    'ingest'     => \$doingest,
+	    'imglist=s'  => \$imglist,
+	    'grid=s'     => \$griddef,
 	    'onlybkgsum' => \$doonlybkgsum,
-	    'sensmap' => \$dosensmap,
-	    'srclist=s' => \$srclist,
-	    'maxproc=i' => \$maxproc,
-	    'ecf=f'     => \$ecf,
-	    'pimin=f'   => \$pimin,
-	    'pimax=f'   => \$pimax,
-	    'eband=s'   => \$eband,
+	    'sensmap'    => \$dosensmap,
+	    'srclist=s'  => \$srclist,
+	    'maxproc=i'  => \$maxproc,
+	    'ecf=f'      => \$ecf,
+	    'pimin=f'    => \$pimin,
+	    'pimax=f'    => \$pimax,
+	    'eband=s'    => \$eband,
+	    'ccf=s'      => \$ccf,
+	    'odf=s'      => \$odf,
 	  );
 
 
 say "Eband $eband using ecf=$ecf pimin=$pimin pimax=$pimax";
 
-my $grid = Atlas::Grid->new;
+my $grid = Detection::Grid->new;
+
+$grid->imglist($imglist) if (defined($imglist));
+$grid->griddef($griddef) if (defined($griddef));
+$grid->srclist($srclist) if (defined($srclist));
+$grid->ccf($ccf)         if (defined($ccf));
+$grid->odf($odf)         if (defined($odf));
+
+# STAGE 1 -- INGEST (& exit)
+if ($doingest) {
+    $grid->ingest;
+    $grid->dbstore;
+    exit;
+}
+
+# for later stages, get filenames and grid from storage
+$grid->dbreload;
+
 my $sas = XMMSAS::Detect->new;
 
 my ($nrows,$ncols) = $grid->griddims;    # $matrix of list of objects
 
-my $atlas = AtlasFiles->new;
-$atlas->use_astrometry_corr(1);
+#my $atlas = AtlasFiles->new;
+#$atlas->use_astrometry_corr(1);
 
 $grid->eband($eband);
-if ($dobkg) {
-    $grid->camera('single');
-} else {
-    $grid->camera('sum');
-}
 
-goto SUMBKG if $doonlybkgsum;
+# to be removed
+#
+# if ($dobkg) {
+#     $grid->camera('single');
+# } else {
+#     $grid->camera('sum');
+# }
+
+#goto SUMBKG if $doonlybkgsum;
 
 #my $pm = Parallel::ForkManager->new($maxproc);
 
@@ -157,21 +323,28 @@ for my $i (0..$nrows-1) {
 
 #	$pm->start and next;
 
-	say "Starting detection on cell $i,$j";
+	print "Checking cell $i,$j ... ";
 	$grid->selectcell($i,$j);
+	if ($grid->cellisempty) {
+	    say "empty, skipping this cell.";
+	    next;
+	}
+
+	say "start processing.";
 	$sas->cellname(sprintf("%03i-%03i",$i,$j));
 
-	$grid->findimg;
-	$grid->findexpmap;
-	$grid->findnovign;
-	$grid->findbkg  unless $dobkg;
+	# no longer needed,new ingest/selectcell mechanism takes care of this
+	#$grid->findimg;
+	#$grid->findexpmap;
+	#$grid->findnovign;
+	#$grid->findbkg  unless $dobkg;
 
 	$grid->calc_radec_span;
 
 	$sas->img( $grid->img );
 	$sas->expmap( $grid->expmap );
 	$sas->novign( $grid->novign );
-	$sas->bkg( $grid->bkg ) unless $dobkg;
+	$sas->bkg( $grid->bkg );
 	$sas->emlcat( sprintf("emlcat-%s.fits",$sas->cellname) );
 
 	my $nimg = @{ $sas->img };
@@ -180,29 +353,34 @@ for my $i (0..$nrows-1) {
 	$sas->pimin( [ ($pimin) x $nimg ] );
 	$sas->pimax( [ ($pimax) x $nimg ] );
 
-	$atlas->obsid($grid->get1stobsid);
-	$sas->odf($atlas->odf);
-	$sas->ccf($atlas->ccf);
+	#$atlas->obsid($grid->get1stobsid);
+	$sas->odf($grid->odf);
+	$sas->ccf($grid->ccf);
 
-	$sas->srclist( $srclist );
+	$sas->srclist( $grid->srclist );
 
 	if ($dobkg) {
-	    $sas->fitbkg;                 # or bkg is fitted here
+	    # STAGE 2: fit bkg (& exit)
+
+	    $sas->fitbkg;
 #	    $pm->finish;
 	    next;
 	}
 
+	# sensitivity maps are disabled, this is not the way to do it
+# 	if ($dosensmap) {
+# 	    # OPTIONAL STAGE: sensitivity map (& exit)
 
+# 	    $sas->make_srcmasks;
+# 	    $sas->fudge_obsid_instr_in_detmasks;
+# 	    $sas->sensmap( sprintf("sensmap-%s.fits",$sas->cellname) );
+# 	    $sas->esensmap;
+# #	    $pm->finish;
+# 	    next;
+# 	}
 
-
-	if ($dosensmap) {
-	    $sas->make_srcmasks;
-	    $sas->fudge_obsid_instr_in_detmasks;
-	    $sas->sensmap( sprintf("sensmap-%s.fits",$sas->cellname) );
-	    $sas->esensmap;
-#	    $pm->finish;
-	    next;
-	}
+	# ...if we get here, it's time for
+	# STAGE 3: DETECTION
 
 	# frame everything in a common WCS reference
 	# or otherwise emldetect will complain
@@ -224,8 +402,8 @@ for my $i (0..$nrows-1) {
     }
 }
 
-SUMBKG:
-$grid->sumbkgs if ($dobkg);
+#SUMBKG:
+#$grid->sumbkgs if ($dobkg);
 
 
 # merge cats manually?

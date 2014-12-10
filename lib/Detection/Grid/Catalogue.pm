@@ -1,9 +1,9 @@
-package Atlas::Grid::Catalogue;
+package Detection::Grid::Catalogue;
 
 # better to work with ftools, not to have to map the catalogue in the DB
 
 use Moose::Role qw/has after/;
-use Piero::Ftools::Pfiles;
+use Ftools::Pfiles;
 use File::Temp 'tempfile';
 
 has 'catfile'     => ( is => 'rw', isa => 'Str' );

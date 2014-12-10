@@ -1,4 +1,4 @@
-package Atlas::Grid::SumBkgs;
+package Detection::Grid::SumBkgs;
 
 use 5.010;
 use Moose::Role;
@@ -9,7 +9,7 @@ sub sumbkgs {
     my $self = shift;
 
     unless ($self->camera eq 'single') {
-	carp 'Resetting camera in Atlas::Grid to "single"';
+	carp 'Resetting camera in Detection::Grid to "single"';
 	$self->camera('single');
     }
 

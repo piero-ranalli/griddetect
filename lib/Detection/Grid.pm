@@ -1,21 +1,31 @@
-package Atlas::Grid;
+package Detection::Grid;
 
 # this module contains most fields, plus a few generic methods
 # All the interesting methods are in the roles
 
 use Moose qw/has with/;
-with 'Atlas::Grid::DB';
-with 'Atlas::Grid::Catalogue';
-with 'Atlas::Grid::GlobFiles';
-with 'Atlas::Grid::SumBkgs';
+with 'Detection::Grid::DB';
+with 'Detection::Grid::Catalogue';
+#with 'Detection::Grid::GlobFiles';
+#with 'Detection::Grid::SumBkgs';  # to be done manually in public version
+
+with 'Detection::Grid::Ingest';
+with 'Detection::Grid::Geometry';
 
 use PDL;
 
 use Carp;
 
+# grid definition
+has rotation => (is => 'rw', isa => 'Num');
+has ra_cen   => (is => 'rw', isa => 'Num');
+has dec_cen  => (is => 'rw', isa => 'Num');
+
+# telescope parameters
 has 'eband'    => ( is => 'rw', isa => 'Str'      );
 has 'camera'   => ( is => 'rw', isa => 'Str', predicate => 'has_camera' );
 
+# event files & co. (just the subset to be processed; all exposures are defined in D::G::DB)
 has 'evt'     => ( is => 'rw', isa => 'ArrayRef' );
 has 'img'     => ( is => 'rw', isa => 'ArrayRef' );
 has 'expmap'  => ( is => 'rw', isa => 'ArrayRef' );
@@ -25,31 +35,35 @@ has 'ra'      => ( is => 'rw', isa => 'ArrayRef' );  # coordinates of the pointi
 has 'dec'     => ( is => 'rw', isa => 'ArrayRef' );  # imgs are also set
 has 'cdelt1'  => ( is => 'rw', isa => 'ArrayRef' );
 
+has 'pointing' => ( is => 'rw', isa => 'ArrayRef' ); # the selected subset of $self->img
+# no longer needed
+#has 'obsid'    => ( is => 'rw', isa => 'ArrayRef' );
 
+# cell
 has 'cellxmin'  => ( is => 'rw', isa => 'Num' );
 has 'cellxmax'  => ( is => 'rw', isa => 'Num' );
 has 'cellymin'  => ( is => 'rw', isa => 'Num' );
 has 'cellymax'  => ( is => 'rw', isa => 'Num' );
 
-
+# frame
 has 'centre_ra'   => ( is => 'rw', isa => 'Num' );
 has 'centre_dec'  => ( is => 'rw', isa => 'Num' );
 has 'framesizex'  => ( is => 'rw', isa => 'Num' );
 has 'framesizey'  => ( is => 'rw', isa => 'Num' );
 
-has 'obsid'    => ( is => 'rw', isa => 'ArrayRef' );
-has 'pointing' => ( is => 'rw', isa => 'ArrayRef' );
+# input sources
+has 'srclist' => ( is => 'rw', isa => 'Str' );
 
-
-
-#has 'srclist' => ( is => 'rw', isa => 'Str'      );
+# SAS stuff
+has 'ccf' => ( is => 'rw', isa => 'Str' );
+has 'odf' => ( is => 'rw', isa => 'Str' );
 
 
 # private:
-has 'x_bound' => ( is => 'ro', isa => 'Any',
-		    default => sub { [120, 123.9, 130] } );
-has 'y_bound' => ( is => 'ro', isa => 'Any',
-		    default => sub { [-50, -55.9,-56.4,-57.0,-57.4, -65] } );
+has 'x_bound' => ( is => 'rw', isa => 'Any' );
+#		    default => sub { [120, 123.9, 130] } );
+has 'y_bound' => ( is => 'rw', isa => 'Any' );
+#		    default => sub { [-50, -55.9,-56.4,-57.0,-57.4, -65] } );
 
 
 
@@ -57,7 +71,9 @@ has 'y_bound' => ( is => 'ro', isa => 'Any',
 # NB the centre of rotation is (RA,DEC)=(0,0)
 #
 # SQL> update pointings set rotra=ra_pnt*cos( -3.14/7.25)-dec_pnt*sin( -3.14/7.25), rotdec=ra_pnt*sin( -3.14/7.25)+dec_pnt*cos( -3.14/7.25);
-has 'rotation' => ( is => 'ro', isa => 'Num', default => -3.14/7.25 );
+# has 'rotation' => ( is => 'ro', isa => 'Num', default => -3.14/7.25 );
+
+
 
 
 
@@ -68,12 +84,12 @@ sub griddims {
 }
 
 
-sub get1stobsid {
-    # return obsid number of first datafile
-    my $self = shift;
+# sub get1stobsid {
+#     # return obsid number of first datafile
+#     my $self = shift;
 
-    return ${$self->obsid}[0];
-}
+#     return ${$self->obsid}[0];
+# }
 
 
 sub calc_radec_span {
