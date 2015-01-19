@@ -14,7 +14,7 @@ The second time to create the bkg files:
  ./griddetect --bkg
 
 The third time to actually run the detection:
- ./griddetect --eband="05-8" --ecf=8.61e-12 --pimin=500 pimax=8000
+ ./griddetect --ecf=8.61e-12
 
 =head1 DESCRIPTION
 
@@ -31,7 +31,7 @@ The grid is defined by specifiying the coordinates of the cracks
 
 For more information, please see the L<griddetect
 manual|http://members.noa.gr/piero.ranalli/griddetect> and the article
-"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2014
+"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2015
 (submitted to A&A).
 
 =head1 PARAMETERS
@@ -239,7 +239,7 @@ manual|http://members.noa.gr/piero.ranalli/griddetect>.
 
 =head1 AUTHOR
 
-(c) 2013-2014 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2015 Piero Ranalli   piero.ranalli (at) noa.gr
 
 =head1 LICENSE
 
