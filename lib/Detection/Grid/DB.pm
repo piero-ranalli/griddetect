@@ -19,6 +19,10 @@ has dbimages   => (is => 'rw', isa => 'ArrayRef', default => sub { [] } );
 has dbexpmaps  => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
 has dbnovigns  => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
 has dbbkgs     => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
+has dbband     => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
+has dbpimin    => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
+has dbpimax    => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
+has dbexpid    => (is => 'rw', isa => 'HashRef',  default => sub { {} } );
 # no need to duplicate what's already in D::Grid
 #has dbsrclist  => (is => 'rw', isa => 'Str',      default => '' );
 #has dbccf      => (is => 'rw', isa => 'Str',      default => '' );
@@ -40,6 +44,10 @@ sub dbstore {
 		  $self->dbexpmaps,
 		  $self->dbnovigns,
 		  $self->dbbkgs,
+		  $self->dbband,
+		  $self->dbpimin,
+		  $self->dbpimax,
+		  $self->dbexpid,
 		  $self->srclist,
 		  $self->ccf,
 		  $self->odf,
@@ -63,6 +71,10 @@ sub dbreload {
     $self->dbexpmaps( shift @$things );
     $self->dbnovigns( shift @$things );
     $self->dbbkgs(    shift @$things );
+    $self->dbband(    shift @$things );
+    $self->dbpimin(   shift @$things );
+    $self->dbpimax(   shift @$things );
+    $self->dbexpid(   shift @$things );
     $self->srclist(   shift @$things );
     $self->ccf(       shift @$things );
     $self->odf(       shift @$things );
@@ -78,14 +90,28 @@ sub dbstoreimgexp {
     my %exp = %{ $self->dbexpmaps };
     my %nov = %{ $self->dbnovigns };
     my %bkg = %{ $self->dbbkgs };
+    my %band= %{ $self->dbband };
+    my %pi1 = %{ $self->dbpimin };
+    my %pi2 = %{ $self->dbpimax };
+    my %id  = %{ $self->dbexpid };
+
     push @img, $arg{img};
     $exp{ $arg{img} } = $arg{exp};
     $nov{ $arg{img} } = $arg{expnovign};
     $bkg{ $arg{img} } = $arg{bkg};
+    $band{$arg{img} } = $arg{band};
+    $pi1{ $arg{img} } = $arg{pimin};
+    $pi2{ $arg{img} } = $arg{pimax};
+    $id{  $arg{img} } = $arg{expid};
+
     $self->dbimages(  \@img );
     $self->dbexpmaps( \%exp );
     $self->dbnovigns( \%nov );
     $self->dbbkgs( \%bkg );
+    $self->dbband( \%band );
+    $self->dbpimin(\%pi1 );
+    $self->dbpimax(\%pi2 );
+    $self->dbexpid(\%id );
 
     # also add the pointing coordinates
     my $hdr = rfitshdr( $arg{img} );
@@ -147,7 +173,7 @@ sub selectcell {
     my @img = @{$self->dbimages}[@idx];    # array slice
     $self->img( \@img );
 
-    # @sel1..@sel6 are different variables because their refs are
+    # @sel1..@selA are different variables because their refs are
     # stored in the object attributes; if the same variable was reused
     # every time, we'd overwrite everything
 
@@ -162,6 +188,23 @@ sub selectcell {
     %h = %{$self->dbbkgs};
     my @sel3 = @h{@img};   # hash slice
     $self->bkg( \@sel3 );
+
+    %h = %{$self->dbband};
+    my @sel7 = @h{@img};   # hash slice
+    $self->eband( \@sel7 );
+
+    %h = %{$self->dbpimin};
+    my @sel8 = @h{@img};   # hash slice
+    $self->pimin( \@sel8 );
+
+    %h = %{$self->dbpimax};
+    my @sel9 = @h{@img};   # hash slice
+    $self->pimax( \@sel9 );
+
+    %h = %{$self->dbexpid};
+    my @selA = @h{@img};   # hash slice
+    $self->expid( \@selA );
+
 
     my @sel4 = $self->dbrapnt->where($mask)->list;   # PDL slice
     $self->ra( \@sel4 );

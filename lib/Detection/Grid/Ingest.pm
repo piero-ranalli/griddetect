@@ -39,8 +39,8 @@ sub read_imglist {
 	my @files = split(' ',$row);
 
 	# check that nothing is missing
-	if (@files != 4) {
-	    say "Incomplete list of files at row $nrow in img/expmap list ".$self->imglist."\n";
+	if (@files != 8) {
+	    say "Incomplete list of files or bands at row $nrow in img/expmap list ".$self->imglist."\n";
 	    $errors++;
 	}
 
@@ -58,7 +58,9 @@ sub read_imglist {
 
 	# store
 	$self->dbstoreimgexp( img=>$files[0], exp=>$files[1],
-			      expnovign=>$files[2], bkg=>$files[3]
+			      expnovign=>$files[2], bkg=>$files[3],
+			      band=>$files[4], pimin=>$files[5],
+			      pimax=>$files[6], expid=>$files[7],
 			    );
     }
     close($fh);

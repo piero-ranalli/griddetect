@@ -48,7 +48,7 @@ in the following runs.
 
 Specify the image/expmap list filename.
 
-=item --grid=myrgid.txt
+=item --grid=mygrid.txt
 
 Specify the grid definition filename.
 
@@ -62,20 +62,17 @@ and the emldetect runs.
 Fit a background model to the images and exposure maps, according to
 the method developed for XMM-COSMOS (Cappelluti et al. 2009).
 
-=item --eband="05-8"
-
-A string describing the energy band, to be used as part of the name of
-file produced in the detection.
 
 =item --ecf=8.6e-12
 
 The energy conversion factor (ecf), defined as the flux (in erg/s/cm2)
 corresponding to a count rate of 1 s**-1.
 
-=item --pimin=500 --pimax=8000
-
-Minimun and maximum values of the energy band, in eV.
-
+If more than one band is being analysed, the ecf will be used for all
+bands, leading to wrong flux values. Therefore, fluxes in the
+catalogue should better be recomputed from the count rates after
+griddetect has run. Multiple ecfs will be implemented in a future
+version.
 
 =back
 
@@ -97,6 +94,14 @@ eexpmap)
 
 =item path of the background file
 
+=item band name
+
+=item pimin
+
+=item pimax
+
+=item exposure id
+
 =back
 
 The columns should be separated by spaces (or tabs) and value should
@@ -107,6 +112,15 @@ unvignetted expmaps have to exist in order to succesfully ingest the
 list.  Background files are checked but it is allowed that they do not
 exist, because usually they will be created in the second stage with
 the --bkg option.
+
+The exposure ids should be strings uniquely identifying the
+pointing. In a mosaic-mode obsid, each pointing has the same obsid
+number but a different EXPIDSTR in the header; this can be used as
+exposure id if only one obsid is being analysed. In the case of
+multiple mosaic-mode obsids, the user should choose exposure ids which
+are different also among obsids.  In the case of multiple,
+non-mosaic-mode obsid, the obsid number should be fine.
+
 
 =head2 Grid definition
 
@@ -144,6 +158,30 @@ the file; however, at least one x or one y should be present.
 
 A sample grid is present in the distribution in the file
 sample_grid.txt.
+
+
+=head1 OUTPUT FILES
+
+Griddetect will produce a number of output files. The following
+are the important ones:
+
+=over 4
+
+=item 1.  ok_emlcat-iii-jjj.fits
+
+=item 2.  crack_emlcat-iii-jjj.fits
+
+=back
+
+Where (iii,jjj) is the cell.  The ok_emlcat files are the detected
+sources falling in the cell. The crack_emlcat ones are the sources
+falling within 3" from the cracks.  After inspecting the crack_emlcats
+for duplicate/missing sources, the ok_emlcat should be merged
+(e.g. with fmerge) to produce the final catalogue.
+
+Many other files are produced in the current directory, which may
+be regarded as temporary. A good practice may be to run griddetect in
+a different directory than the one where the images/expmaps/bkgs are.
 
 
 =head1 WORKFLOW
@@ -184,7 +222,7 @@ using evtlist2makefile.pl and img-extractor-expmap.pl);
 
 =item 12. check for sources close to the cracks;
 
-=item # join the individual catalogues.
+=item 13 join the individual catalogues (e.g. with fmerge).
 
 =back
 
@@ -215,6 +253,7 @@ namespaces called by this program.
 
  0.1  2013/5/      Development version used for XMM-ATLAS
  1.0  2014/12/10   First public version
+ 2.0  2015/1/19    Detection over multiple bands
 
 =cut
 
@@ -244,7 +283,7 @@ my $doonlybkgsum = 0;
 my $dosensmap = 0;
 my $maxproc = 0;
 
-my $eband = '05-8';
+#my $eband = '05-8';
 	# ecf: gamma=1.7 nh=2.3e20
 	# .5-8 =>      9.197e-12
 	# 1.39-1.55 => 3.221e-13
@@ -252,8 +291,8 @@ my $eband = '05-8';
 	# 7.84-8.00 => 1.011e-13
 	#  tot-lines: 8.609e-12
 my $ecf = 1/.8609;
-my $pimin = 2000;
-my $pimax = 8000;
+#my $pimin = 2000;
+#my $pimax = 8000;
 
 
 GetOptions( 'bkg'        => \$dobkg,
@@ -265,15 +304,15 @@ GetOptions( 'bkg'        => \$dobkg,
 	    'srclist=s'  => \$srclist,
 	    'maxproc=i'  => \$maxproc,
 	    'ecf=f'      => \$ecf,
-	    'pimin=f'    => \$pimin,
-	    'pimax=f'    => \$pimax,
-	    'eband=s'    => \$eband,
+#	    'pimin=f'    => \$pimin,
+#	    'pimax=f'    => \$pimax,
+#	    'eband=s'    => \$eband,
 	    'ccf=s'      => \$ccf,
 	    'odf=s'      => \$odf,
 	  );
 
 
-say "Eband $eband using ecf=$ecf pimin=$pimin pimax=$pimax";
+#say "Eband $eband using ecf=$ecf pimin=$pimin pimax=$pimax";
 
 my $grid = Detection::Grid->new;
 
@@ -300,7 +339,7 @@ my ($nrows,$ncols) = $grid->griddims;    # $matrix of list of objects
 #my $atlas = AtlasFiles->new;
 #$atlas->use_astrometry_corr(1);
 
-$grid->eband($eband);
+#$grid->eband($eband);
 
 # to be removed
 #
@@ -346,8 +385,12 @@ for my $i (0..$nrows-1) {
 	my $nimg = @{ $sas->img };
 
 	$sas->ecf(   [ ($ecf)   x $nimg ] );
-	$sas->pimin( [ ($pimin) x $nimg ] );
-	$sas->pimax( [ ($pimax) x $nimg ] );
+#	$sas->pimin( [ ($pimin) x $nimg ] );
+#	$sas->pimax( [ ($pimax) x $nimg ] );
+	$sas->eband( $grid->eband  );
+	$sas->pimin( $grid->pimin );
+	$sas->pimax( $grid->pimax );
+	$sas->expid( $grid->expid );
 
 	#$atlas->obsid($grid->get1stobsid);
 	$sas->odf($grid->odf);

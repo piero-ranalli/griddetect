@@ -22,7 +22,7 @@ has ra_cen   => (is => 'rw', isa => 'Num');
 has dec_cen  => (is => 'rw', isa => 'Num');
 
 # telescope parameters
-has 'eband'    => ( is => 'rw', isa => 'Str'      );
+#has 'eband'    => ( is => 'rw', isa => 'Str'      ); see below
 has 'camera'   => ( is => 'rw', isa => 'Str', predicate => 'has_camera' );
 
 # event files & co. (just the subset to be processed; all exposures are defined in D::G::DB)
@@ -31,6 +31,10 @@ has 'img'     => ( is => 'rw', isa => 'ArrayRef' );
 has 'expmap'  => ( is => 'rw', isa => 'ArrayRef' );
 has 'novign'  => ( is => 'rw', isa => 'ArrayRef' );
 has 'bkg'     => ( is => 'rw', isa => 'ArrayRef' );
+has 'eband'   => ( is => 'rw', isa => 'ArrayRef' );
+has 'pimin'   => ( is => 'rw', isa => 'ArrayRef' );
+has 'pimax'   => ( is => 'rw', isa => 'ArrayRef' );
+has 'expid'   => ( is => 'rw', isa => 'ArrayRef' );
 has 'ra'      => ( is => 'rw', isa => 'ArrayRef' );  # coordinates of the pointings, set when
 has 'dec'     => ( is => 'rw', isa => 'ArrayRef' );  # imgs are also set
 has 'cdelt1'  => ( is => 'rw', isa => 'ArrayRef' );

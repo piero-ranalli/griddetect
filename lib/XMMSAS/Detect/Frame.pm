@@ -76,7 +76,7 @@ sub putinframe {
 	# remove .gz if it exists
 	$file =~ s|\.gz$||;
 	# add "framed_" in front
-	my $f = "$path/framed_$file";
+	my $f = "framed_$file";
 	unlink ($f) if (-e $f);
 
 	# (empty LD_LIBRARY_PATH before calling addimages to avoid library

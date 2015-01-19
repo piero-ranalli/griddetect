@@ -140,7 +140,9 @@ has 'srccat'  => ( is => 'rw', isa => 'Any', predicate => 'has_srccat' );
 has 'srclist_racol'   => ( is => 'rw', isa => 'Str', default => 'RA' );
 has 'srclist_deccol'  => ( is => 'rw', isa => 'Str', default => 'DEC' );
 
-has 'ecf'   => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_ecf' );
+has 'expid' => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_expid' );
+has 'ecf'   => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_ecf'   );
+has 'eband' => ( is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_band'  );
 has 'pimin' => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_pimin' );
 has 'pimax' => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_pimax' );
 has 'mlmin' => ( is => 'rw', isa => 'Num', default => 4.6 );
@@ -285,9 +287,12 @@ sub emldetect {
 
     # checks
     croak 'ecf,pimin,pimax not defined' 
-	unless ($self->has_ecf and $self->has_pimin and $self->has_pimax);
+	unless ($self->has_ecf and $self->has_band and
+		$self->has_pimin and $self->has_pimax);
     croak 'different numbers of images/expmaps/bkgs/ecf/pi'
 	unless ($self->check_cardinalities);
+
+    $self->sortonbands;
 
     my $img =    'imagesets="'.join(' ',@{$self->img})   .'"';
     my $exp = 'expimagesets="'.join(' ',@{$self->expmap}).'"';
@@ -315,6 +320,43 @@ EMLDETECT
 }
 
 
+sub sortonbands {
+    my $self = shift;
+    # sort files according to their expids and bands
+
+    my @band = @{ $self->eband };
+    my @img =  @{ $self->img  };
+    my @exp =  @{ $self->expmap };
+    my @bkg =  @{ $self->bkg };
+    my @pimin = @{ $self->pimin };
+    my @pimax = @{ $self->pimax };
+    my @ecf =   @{ $self->ecf };
+    my @expid = @{ $self->expid };
+
+    my @keys = map { "$expid[$_] $band[$_]" } 0..$#img;
+    my @idx = sort { $keys[$a] cmp $keys[$b] } 0..$#img;
+
+    @band = @band[@idx];
+    @img  = @img[@idx];
+    @exp  = @exp[@idx];
+    @bkg  = @bkg[@idx];
+    @pimin= @pimin[@idx];
+    @pimax= @pimax[@idx];
+    @ecf  = @ecf[@idx];
+    @expid = @expid[@idx];
+
+    $self->eband( \@band );
+    $self->img( \@img );
+    $self->expmap( \@exp );
+    $self->bkg( \@bkg );
+    $self->pimin( \@pimin );
+    $self->pimax( \@pimax );
+    $self->ecf( \@ecf );
+    $self->expid( \@expid );
+
+}
+
+
 
 
 sub check_cardinalities {
@@ -326,6 +368,7 @@ sub check_cardinalities {
     $problems++ unless ($n == @{$self->novign});
     $problems++ unless ($n == @{$self->bkg});
     $problems++ unless ($n == @{$self->ecf});
+    $problems++ unless ($n == @{$self->eband});
     $problems++ unless ($n == @{$self->pimin});
     $problems++ unless ($n == @{$self->pimax});
 
@@ -337,21 +380,41 @@ sub check_cardinalities {
 sub fudge_obsid_instr {
     my $self = shift;
 
-    $self->do_fudge_o_i( $_ ) for ($self->img, $self->expmap, $self->novign, $self->bkg);
+    $self->do_fudge_o_i( $_, $self->expid ) for ($self->img, $self->expmap, $self->novign, $self->bkg);
 }
 
 
 sub do_fudge_o_i {
     my $self = shift;
     my $files = shift;
-    my $e = shift // 0;
+    my $expids = shift;
+    my $e = shift // 0; # FITS extension
 
-    my $expid = 1;
-    for my $f (@$files) {
+    #my $expid = 1;
+    #my $first = 1;
+    #my @bands = @{ $self->band };
+
+    #my $b = $bands[0];
+
+    for my $i (0..$#{$files}) {
 
 	# rotate exposure values otherwise emldetect will think it's
 	# the same instrument but different band, and will crash if
 	# there are more than 6 "bands".
+
+	# but recycle values where the bands are really different
+
+	# expids are now specified in the image.list so use those
+	# NB they are expected to be UNIQUE
+
+	# if ($band[$i] eq $b and not $first) {
+	#     # bands have cycled
+	#     $expid=1;
+	# }
+	# if ($first) { $first=0 };
+
+	my $expid = $$expids[$i];
+	my $f = $$files[$i];
 
 	my $cmd = "fthedit $f+$e INSTRUME add 'EPN'";
 	$self->call($cmd);
@@ -359,7 +422,7 @@ sub do_fudge_o_i {
 	$self->call($cmd);
 	$cmd = sprintf("fthedit $f+$e EXPIDSTR add '%03i'",$expid);
 	$self->call($cmd);
-	$cmd = sprintf("fthedit $f+$e OBS_ID add '%010i'",725290100+$expid++);
+	$cmd = sprintf("fthedit $f+$e OBS_ID add '%010i'",725290100+$expid);
 	$self->call($cmd);
     }
 }
