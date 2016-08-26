@@ -14,7 +14,7 @@ The second time to create the bkg files:
  ./griddetect --bkg
 
 The third time to actually run the detection:
- ./griddetect --ecf=8.61e-12
+ ./griddetect --ecf=1.162
 
 =head1 DESCRIPTION
 
@@ -30,9 +30,9 @@ The grid is defined by specifiying the coordinates of the cracks
 (i.e., the lines dividing the cells) and a rotation angle.
 
 For more information, please see the L<griddetect
-manual|http://members.noa.gr/piero.ranalli/griddetect> and the article
-"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2015
-(submitted to A&A).
+manual|http://www.astro.lu.se/~piero/griddetect> and the article
+"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2016
+A&A 590, 80.
 
 =head1 PARAMETERS
 
@@ -63,10 +63,11 @@ Fit a background model to the images and exposure maps, according to
 the method developed for XMM-COSMOS (Cappelluti et al. 2009).
 
 
-=item --ecf=8.6e-12
+=item --ecf=1.162
 
-The energy conversion factor (ecf), defined as the flux (in erg/s/cm2)
-corresponding to a count rate of 1 s**-1.
+The energy conversion factor (ecf). If F is the flux in 10^-11
+erg/s/cm2 corresponding to a count rate of 1 s**-1, then ecf=1/F (see
+the emldetect manual).
 
 If more than one band is being analysed, the ecf will be used for all
 bands, leading to wrong flux values. Therefore, fluxes in the
@@ -227,7 +228,7 @@ using evtlist2makefile.pl and img-extractor-expmap.pl);
 =back
 
 A detailed description of the above steps can be found in the L<griddetect
-manual|http://members.noa.gr/piero.ranalli/griddetect>.
+manual|http://www.astro.lu.se/~piero/griddetect>.
 
 =head1 DEPENDENCIES
 
@@ -239,7 +240,7 @@ manual|http://members.noa.gr/piero.ranalli/griddetect>.
 
 =head1 AUTHOR
 
-(c) 2013-2015 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2016 Piero Ranalli   piero (at) lu.se
 
 =head1 LICENSE
 

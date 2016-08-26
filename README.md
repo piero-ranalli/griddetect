@@ -168,11 +168,11 @@ A detailed description of the above steps can be found in the [griddetect manual
 
 # VERSION
 
-1.0
+2.0
 
 # AUTHOR
 
-(c) 2013-2014 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2016 Piero Ranalli   piero.ranalli (at) noa.gr
 
 # LICENSE
 
