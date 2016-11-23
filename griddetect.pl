@@ -14,7 +14,7 @@ The second time to create the bkg files:
  ./griddetect --bkg
 
 The third time to actually run the detection:
- ./griddetect --ecf=1.162
+ ./griddetect --detect --ecf=1.162
 
 =head1 DESCRIPTION
 
@@ -271,15 +271,16 @@ use Getopt::Long;
 #use AtlasFiles;
 use Detection::Grid;
 
-# defaults
-my $srclist = 'srclist.fits';
-my $imglist = 'image.list';
-my $griddef = 'griddef.txt';
-my $ccf = 'ccf.cif';
-my $odf = 'SUM.SAS';
+# no defaults
+my $srclist;
+my $imglist;
+my $griddef;
+my $ccf;
+my $odf;
 
 my $dobkg = 0;
 my $doingest = 0;
+my $dodetect = 0;
 my $doonlybkgsum = 0;
 my $dosensmap = 0;
 my $maxproc = 0;
@@ -298,6 +299,7 @@ my $ecf = 1/.8609;
 
 GetOptions( 'bkg'        => \$dobkg,
 	    'ingest'     => \$doingest,
+	    'detect'     => \$dodetect,
 	    'imglist=s'  => \$imglist,
 	    'grid=s'     => \$griddef,
 	    'onlybkgsum' => \$doonlybkgsum,
@@ -311,6 +313,19 @@ GetOptions( 'bkg'        => \$dobkg,
 	    'ccf=s'      => \$ccf,
 	    'odf=s'      => \$odf,
 	  );
+
+
+# check for the srclist, ccf, and odf parametrs
+if ($doingest and not (
+     defined($srclist) and defined($ccf) and defined($odf) and defined($griddef))) {
+    die "The --grid, --srclist, --ccf, and --odf parameters need to be specified for the ingest stage.\n";
+}
+
+
+# warning for third stage
+unless ($doingest or $dobkg or $dodetect) {
+    die "Please choose which stage to run, by specifying any of the --ingest, --bkg, or --detect switches.\n";
+}
 
 
 #say "Eband $eband using ecf=$ecf pimin=$pimin pimax=$pimax";

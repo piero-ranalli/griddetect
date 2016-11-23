@@ -13,11 +13,14 @@ no if $] >= 5.018, warnings => "experimental::smartmatch";
 
 sub ingest {
     my $self = shift;
+
+    # check that files exist
+    $self->check_file($_) for ($self->griddef, $self->srclist, $self->ccf, $self->odf);
+
     # read griddef first and imglist after, because imglist will need
     # the rotation value to compute rot_ra_pnt, rot_dec_pnt
     $self->read_griddef;
     $self->read_imglist;
-    $self->check_file($_) for ($self->srclist, $self->ccf, $self->odf);
     $self->checkgrid;
 }
 
@@ -128,7 +131,7 @@ sub check_file {
     my $f = shift;
 
     unless (-e $f) {
-	die "Could not find file ".$self->srclist."\n";
+	die "Could not find file $f\n";
     }
 }
 
