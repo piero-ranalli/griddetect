@@ -226,7 +226,7 @@ sub dofit {
 
     my $bkg = $bkg1+$bkg2;
     $bkg->sethdr( $img->gethdr );
-    wfits($bkg,$bkgf);
+    wfits($bkg->float,$bkgf);
 }
 
 
