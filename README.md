@@ -160,7 +160,10 @@ using evtlist2makefile.pl and img-extractor-expmap.pl);
 12. check for sources close to the cracks;
 - \# join the individual catalogues.
 
-A detailed description of the above steps can be found in the [griddetect manual](http://members.noa.gr/piero.ranalli/griddetect).
+
+For more information I suggest any user to contact me, I'll be glad to
+explain more in detail how the programme works.
+
 
 # DEPENDENCIES
 
@@ -168,11 +171,11 @@ A detailed description of the above steps can be found in the [griddetect manual
 
 # VERSION
 
-2.0
+2.1
 
 # AUTHOR
 
-(c) 2013-2016 Piero Ranalli   piero.ranalli (at) noa.gr
+(c) 2013-2016 Piero Ranalli   pranalli.github (at) gmail.com
 
 # LICENSE
 
@@ -186,3 +189,5 @@ namespaces called by this program.
 
     0.1  2013/5/      Development version used for XMM-ATLAS
     1.0  2014/12/10   First public version
+    2.0  2015/1/19    Detection over multiple bands
+    2.1  2016/12/18   Bug fixes

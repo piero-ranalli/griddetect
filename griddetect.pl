@@ -245,7 +245,7 @@ manual|http://www.astro.lu.se/~piero/griddetect>.
 
 =head1 VERSION
 
-1.0
+2.1
 
 =head1 AUTHOR
 
@@ -264,6 +264,7 @@ namespaces called by this program.
  0.1  2013/5/      Development version used for XMM-ATLAS
  1.0  2014/12/10   First public version
  2.0  2015/1/19    Detection over multiple bands
+ 2.1  2016/12/18   Bug fixes
 
 =cut
 
