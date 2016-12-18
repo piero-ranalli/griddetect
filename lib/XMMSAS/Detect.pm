@@ -254,12 +254,14 @@ sub srcmask {
 	$b =~ s/[^a-zA-Z0-9_]//g; # remove non alphanumeric
 	push @okbands, "EXTENT$b" if (exists($self->srccat->{"EXTENT$b"}));
     }
-    # only if @okbands is empty, look for default 'EXTENT'
-    unless (@okbands) {
-	croak 'Cannot find any extent column in the srclist'
-	    unless (exists($self->srccat->{EXTENT}));
-	push @okbands,'EXTENT';
+    # only if @okbands is empty, look for default: 'EXTENT', 'BOX_SIZE', 'EXT'
+    for my $defaultcol (qw/EXTENT BOX_SIZE EXT/) {
+	if (exists($self->srccat->{$defaultcol})) {
+	    push @okbands, $defaultcol;
+	}
     }
+    croak 'Cannot find any extent column in the srclist'
+	unless (@okbands);
 
     # extents are in image pixels
     my @extentpdls = map { $self->srccat->{$_} } @okbands;
