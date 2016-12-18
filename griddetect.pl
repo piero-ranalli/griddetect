@@ -122,6 +122,15 @@ multiple mosaic-mode obsids, the user should choose exposure ids which
 are different also among obsids.  In the case of multiple,
 non-mosaic-mode obsid, the obsid number should be fine.
 
+In stage 2 (background files), the band names will be used to look for
+columns named EXTENTbandname in the input srclist.  The FITS standard
+restricts the set of characters which can be used in column names to
+letters, numbers, and the underscore character; therefore the
+following rules will be applied: 1) any dash in the name will be
+converted to an underscore (i.e. if the band name is 05-2, griddetect
+will look for column EXTENT05_2); 2) any other non-alphanumeric
+character will be dropped.
+
 
 =head2 Grid definition
 

@@ -140,6 +140,7 @@ has 'srccat'  => ( is => 'rw', isa => 'Any', predicate => 'has_srccat' );
 has 'srclist_racol'   => ( is => 'rw', isa => 'Str', default => 'RA' );
 has 'srclist_deccol'  => ( is => 'rw', isa => 'Str', default => 'DEC' );
 
+# 'eband' is the band name
 has 'expid' => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_expid' );
 has 'ecf'   => ( is => 'rw', isa => 'ArrayRef[Num]', predicate => 'has_ecf'   );
 has 'eband' => ( is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_band'  );
@@ -241,11 +242,32 @@ sub srcmask {
 			      $self->srccat->{$self->srclist_deccol}
 			     );
 
+    # look for extent columns using list of band names
+    my @bands = @{$self->eband};
+    # take unique names
+    # https://perlmaven.com/unique-values-in-an-array-in-perl
+    @bands = do { my %seen; grep { !$seen{$_}++ } @bands };
+    my @okbands;
+    for my $b (@bands) {
+	# sanitize band names to conform to FITS standard
+	$b =~ s/-/_/g;   # dash -> underscore
+	$b =~ s/[^a-zA-Z0-9_]//g; # remove non alphanumeric
+	push @okbands, "EXTENT$b" if (exists($self->srccat->{"EXTENT$b"}));
+    }
+    # only if @okbands is empty, look for default 'EXTENT'
+    unless (@okbands) {
+	croak 'Cannot find any extent column in the srclist'
+	    unless (exists($self->srccat->{EXTENT}));
+	push @okbands,'EXTENT';
+    }
+
     # extents are in image pixels
-    my $extents = pdl [ $self->srccat->{EXTENT058}, $self->srccat->{EXTENT052}, $self->srccat->{EXTENT28} ];
+    my @extentpdls = map { $self->srccat->{$_} } @okbands;
+    my $extents = pdl [ @extentpdls ];
     $extents->inplace->badmask(-1);  # -1 is ok since we are taking the maximum among positive values
+    # for each source, get maximum extent among bands
     my $extent = $extents->xchg(0,1)->maximum;
-    # but check anyway...
+    # check that no source is left behind
     croak 'sources with undefined extent' if (any($extent<0));
 
     my $maxradius= ceil($extent->max);
