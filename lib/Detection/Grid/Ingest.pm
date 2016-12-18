@@ -68,6 +68,8 @@ sub read_imglist {
     }
     close($fh);
 
+    if ($self->dbcheck_repeated_expids) { $errors++ };
+
     if ($errors) {
 	die "There where $errors errors. Image/expmap list not ingested.\n";
     }

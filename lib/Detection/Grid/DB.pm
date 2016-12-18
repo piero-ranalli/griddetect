@@ -8,6 +8,8 @@ use Moose::Role 'has';
 use PDL;
 use Storable;
 use PDL::IO::Storable;  # this allows Storable to store piddles
+use Carp;
+use v5.010;
 
 # a set of tables containing the necessary information for ALL exposures
 has dbrotra    => (is => 'rw', isa => 'PDL',     default => sub { pdl [] } );
@@ -258,6 +260,34 @@ sub mmin {
 sub mmax {
     my $l = pdl( @_ );
     return $l->max;
+}
+
+
+sub dbcheck_repeated_expids {
+    my $self = shift;
+    my %ids = %{$self->dbexpid};
+
+    my %count;
+    for my $id (values %ids) {
+	$count{$id}++;
+    }
+
+    # there may be max N_BAND number of repeated exposure IDs
+    my @bands = values %{$self->dbband};
+    # take unique names
+    # https://perlmaven.com/unique-values-in-an-array-in-perl
+    @bands = do { my %seen; grep { !$seen{$_}++ } @bands };
+
+
+    my $errstatus = 0;
+    for my $k (keys %count) {
+	if ($count{$k}>@bands) {
+	    say "ExposureID $k is present more times than the number of distinct bands.";
+	    $errstatus = 1;
+	}
+    }
+
+    return $errstatus;
 }
 
 
