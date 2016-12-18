@@ -32,7 +32,7 @@ The grid is defined by specifiying the coordinates of the cracks
 For more information, please see the L<griddetect
 manual|http://www.astro.lu.se/~piero/griddetect> and the article
 "The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2016
-A&A 590, 80.
+A&A 577, 121.
 
 =head1 PARAMETERS
 
@@ -249,7 +249,7 @@ manual|http://www.astro.lu.se/~piero/griddetect>.
 
 =head1 AUTHOR
 
-(c) 2013-2016 Piero Ranalli   piero (at) lu.se
+(c) 2013-2016 Piero Ranalli   pranalli.github (at) gmail.com
 
 =head1 LICENSE
 

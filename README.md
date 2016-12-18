@@ -27,9 +27,10 @@ catalogue is the union of the sources detected in each cell.
 The grid is defined by specifiying the coordinates of the cracks
 (i.e., the lines dividing the cells) and a rotation angle.
 
-For more information, please see the [griddetect manual](http://members.noa.gr/piero.ranalli/griddetect) and the article
-"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2014
-(submitted to A&A).
+For more information, please see the [griddetect manual](http://www.astro.lu.se/~piero/griddetect) and the article
+"The XMM-Newton survey in the H-ATLAS field" by Ranalli et al., 2015
+A&A 577, 121.
+
 
 # PARAMETERS
 
