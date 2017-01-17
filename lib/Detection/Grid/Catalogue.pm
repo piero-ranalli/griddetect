@@ -29,7 +29,7 @@ sub cleancat {
 
     # check for special case of zero-rotation
     my $cmdcalc;
-    if ($r == 0) {
+    if ($r != 0) {
 	$cmdcalc = <<FTOOLS1;
  ftcalc $c   $tn1 ROT_RA  'RA*cos($r)-DEC*sin($r)' clobber=yes
  ftcalc $tn1 $tn2 ROT_DEC 'RA*sin($r)+DEC*cos($r)' clobber=yes
