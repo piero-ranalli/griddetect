@@ -75,9 +75,17 @@ sub putinframe {
 	my ($path,$file) = ($i =~ m|^(.*)/([^/]+)$|);
 	# remove .gz if it exists
 	$file =~ s|\.gz$||;
+
+	## we used to do:
 	# add "framed_" in front
-	my $f = "framed_$file";
-	unlink ($f) if (-e $f);
+	# my $f = "framed_$file";
+	# unlink ($f) if (-e $f);
+	## however, when a cell contains many files, "framed_$file" can become
+	## too long for emldetect to hold as a parameter. So let's use
+	## something shorter
+	my $framedtemp = File::Temp->new( 'fXXXXX', SUFFIX=>'.fits' );
+	my $f = $framedtemp->filename;
+
 
 	# (empty LD_LIBRARY_PATH before calling addimages to avoid library
 	#  clash with SAS)
